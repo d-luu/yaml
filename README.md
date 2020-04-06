@@ -2,8 +2,7 @@
 
 Introduction
 ------------
-
-The yaml package enables Go programs to comfortably encode and decode YAML
+The yaml package is a fork of gopkg.in/yaml.v3 and enables Go programs to comfortably encode and decode YAML
 values. It was developed within [Canonical](https://www.canonical.com) as
 part of the [juju](https://juju.ubuntu.com) project, and is based on a
 pure Go port of the well-known [libyaml](http://pyyaml.org/wiki/LibYAML)
@@ -36,29 +35,24 @@ supported since they're a poor design and are gone in YAML 1.2.
 Installation and usage
 ----------------------
 
-The import path for the package is *gopkg.in/yaml.v3*.
+The import path for the package is *github.com/d-luu/yaml*.
 
 To install it, run:
 
-    go get gopkg.in/yaml.v3
+    go get github.com/d-luu/yaml
 
 API documentation
 -----------------
 
 If opened in a browser, the import path itself leads to the API documentation:
 
-  - [https://gopkg.in/yaml.v3](https://gopkg.in/yaml.v3)
-
-API stability
--------------
-
-The package API for yaml v3 will remain stable as described in [gopkg.in](https://gopkg.in).
+  - [github.com/d-luu/yaml](https://github.com/d-luu/yaml)
 
 
 License
 -------
 
-The yaml package is licensed under the MIT and Apache License 2.0 licenses.
+The yaml package, a fork of gopkg.in/yaml.v3, is licensed under the MIT and Apache License 2.0 licenses.
 Please see the LICENSE file for details.
 
 
@@ -72,7 +66,7 @@ import (
         "fmt"
         "log"
 
-        "gopkg.in/yaml.v3"
+        "github.com/d-luu/yaml"
 )
 
 var data = `
@@ -89,7 +83,9 @@ type T struct {
         B struct {
                 RenamedC int   `yaml:"c"`
                 D        []int `yaml:",flow"`
+                Comments map[string]map[string]string `yaml:"__comments__"`
         }
+        Comments map[string]map[string]string `yaml:"__comments__"`
 }
 
 func main() {
@@ -120,6 +116,39 @@ func main() {
                 log.Fatalf("error: %v", err)
         }
         fmt.Printf("--- m dump:\n%s\n\n", string(d))
+
+
+        type b struct {
+            RenamedC int   `yaml:"c"`
+            D        []int `yaml:",flow"`
+            Comments map[string]map[string]string `yaml:"__comments__"`
+        }
+        t2 := T{
+            A: "aaa",
+            B: b{
+                RenamedC: 0,
+                D:        []int{1, 2, 3},
+                Comments: map[string]map[string]string{
+                    // "c" matches the yaml key to RenamedC
+                    // we use the resolved key in the Comments map
+                    "c": {
+                        yaml.InlineKey: "c's inline comment",
+                    },     
+                },
+            },
+            Comments: map[string]map[string]string{
+                "b": {
+                    yaml.HeaderKey: "b's header comment",
+                    yaml.InlineKey: "b's inline comment",
+                    yaml.FooterKey: "b's footer comment",
+                },     
+            },           
+        }   
+        d2, err := yaml.Marshal(&t2)
+        if err != nil {
+            log.Fatalf("error: %v", err)
+        }
+        fmt.Printf("--- t2 dump:\n%s\n\n", string(d2))
 }
 ```
 
@@ -146,5 +175,14 @@ b:
   d:
   - 3
   - 4
+
+
+--- t2 dump:
+a: aaa
+# b's header comment
+b: # b's inline comment
+# b's footer comment
+    c: 0 # c's inline comment
+    d: [1, 2, 3]
 ```
 

@@ -31,6 +31,23 @@ import (
 	"unicode/utf8"
 )
 
+const (
+	CommentsKey = "__comments__"
+	SelfKey     = "__self__"
+
+	HeaderKey = "head"
+	InlineKey = "line"
+	FooterKey = "foot"
+	TailKey   = "tail"
+)
+
+type Comments struct {
+	Head []byte
+	Line []byte
+	Foot []byte
+	Tail []byte
+}
+
 // The Unmarshaler interface may be implemented by types to customize their
 // behavior when being unmarshaled from a YAML document.
 type Unmarshaler interface {
